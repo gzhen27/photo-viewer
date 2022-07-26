@@ -16,6 +16,9 @@ struct ContentView: View {
             ScrollView(showsIndicators: false) {
                 ForEach(images, id: \.self) { uiImage in
                     Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 300, height: 300, alignment: .center)
                 }
             }
         }
@@ -49,11 +52,15 @@ struct ContentView: View {
     }
     
     private func convertImage(_ image: PHAsset) -> UIImage? {
-        let imageManager = PHImageManager.default()
-        
         var returnedImage: UIImage?
         
-        imageManager.requestImage(for: image, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFill, options: nil) { image, _ in
+        let imageManager = PHImageManager.default()
+        let option = PHImageRequestOptions()
+        option.resizeMode = .none
+        option.deliveryMode = .highQualityFormat
+        option.isSynchronous = true
+        
+        imageManager.requestImage(for: image, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFill, options: option) { image, _ in
             returnedImage = image
         }
         
