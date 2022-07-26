@@ -17,8 +17,10 @@ struct ContentView: View {
                 ForEach(images, id: \.self) { uiImage in
                     Image(uiImage: uiImage)
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .cornerRadius(10)
                         .frame(width: 300, height: 300, alignment: .center)
+                        .aspectRatio(contentMode: .fit)
+                        .padding(.bottom, 8)
                 }
             }
         }
