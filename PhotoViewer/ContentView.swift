@@ -9,13 +9,17 @@ import SwiftUI
 import Photos
 
 struct ContentView: View {
-    @State private var images: [PHAsset] = []
+    @State private var images: [UIImage] = []
     
     var body: some View {
         VStack {
-            Text("Photo Viewer")
-                .padding()
+            ScrollView(showsIndicators: false) {
+                ForEach(images, id: \.self) { uiImage in
+                    Image(uiImage: uiImage)
+                }
+            }
         }
+        .padding()
         .onAppear {
             populatePhotos()
         }
@@ -26,13 +30,34 @@ struct ContentView: View {
             switch status {
             case .authorized:
                 let assets = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: nil)
-                assets.enumerateObjects { (imageObject, _, _) in
-                    self.images.append(imageObject)
+                assets.enumerateObjects { imageObject, _, _ in
+                    if let image = convertImage(imageObject) {
+                        self.images.append(image)
+                    }
+                }
+            case .limited:
+                let limitedAssets = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: nil)
+                limitedAssets.enumerateObjects { imageObject, _, _ in
+                    if let image = convertImage(imageObject) {
+                        self.images.append(image)
+                    }
                 }
             default:
                 break
             }
         }
+    }
+    
+    private func convertImage(_ image: PHAsset) -> UIImage? {
+        let imageManager = PHImageManager.default()
+        
+        var returnedImage: UIImage?
+        
+        imageManager.requestImage(for: image, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFill, options: nil) { image, _ in
+            returnedImage = image
+        }
+        
+        return returnedImage
     }
 }
 
