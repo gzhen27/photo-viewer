@@ -6,7 +6,49 @@
 //
 
 import Foundation
+import UIKit
+import Photos
 
 class CustomPhotoManager {
     static let shared = CustomPhotoManager()
+    
+    private let imageManger = PHImageManager.default()
+    
+    func getPhotoLibraryAuthorization() async {
+        await PHPhotoLibrary.requestAuthorization(for: .readWrite)
+    }
+    
+    func getAllPhoto() -> [UIImage] {
+        var uiImages = [UIImage]()
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        
+        switch status {
+        case .authorized, .limited:
+            let assets = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: nil)
+            assets.enumerateObjects { asset, _, _ in
+                if let uiImage = self.getUiImageFrom(asset: asset) {
+                    uiImages.append(uiImage)
+                }
+            }
+        default:
+            break
+        }
+        
+        return uiImages
+    }
+    
+    private func getUiImageFrom(asset: PHAsset) -> UIImage? {
+        var uiImage: UIImage?
+        
+        let option = PHImageRequestOptions()
+        option.resizeMode = .none
+        option.deliveryMode = .highQualityFormat
+        option.isSynchronous = true
+        
+        imageManger.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFill, options: option) { image, _ in
+            uiImage = image
+        }
+        
+        return uiImage
+    }
 }

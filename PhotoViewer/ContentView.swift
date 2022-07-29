@@ -6,10 +6,9 @@
 //
 
 import SwiftUI
-import Photos
 
 struct ContentView: View {
-    @State private var images: [UIImage] = []
+    @State private var images = [UIImage]()
     
     var body: some View {
         VStack {
@@ -24,48 +23,13 @@ struct ContentView: View {
             }
         }
         .padding()
-        .onAppear {
-            populatePhotos()
+        .task {
+            // request authorization from the Photo LIbrary
+            await CustomPhotoManager.shared.getPhotoLibraryAuthorization()
+            
+            //fetch all photos from the Photo App
+            images = CustomPhotoManager.shared.getAllPhoto()
         }
-    }
-    
-    private func populatePhotos() {
-        PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
-            switch status {
-            case .authorized:
-                let assets = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: nil)
-                assets.enumerateObjects { imageObject, _, _ in
-                    if let image = convertImage(imageObject) {
-                        self.images.append(image)
-                    }
-                }
-            case .limited:
-                let limitedAssets = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: nil)
-                limitedAssets.enumerateObjects { imageObject, _, _ in
-                    if let image = convertImage(imageObject) {
-                        self.images.append(image)
-                    }
-                }
-            default:
-                break
-            }
-        }
-    }
-    
-    private func convertImage(_ image: PHAsset) -> UIImage? {
-        var returnedImage: UIImage?
-        
-        let imageManager = PHImageManager.default()
-        let option = PHImageRequestOptions()
-        option.resizeMode = .none
-        option.deliveryMode = .highQualityFormat
-        option.isSynchronous = true
-        
-        imageManager.requestImage(for: image, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFill, options: option) { image, _ in
-            returnedImage = image
-        }
-        
-        return returnedImage
     }
 }
 
