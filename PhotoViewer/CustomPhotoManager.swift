@@ -19,19 +19,24 @@ class CustomPhotoManager {
     }
     
     func getAllPhoto() -> [UIImage] {
-        var uiImages = [UIImage]()
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         
         switch status {
         case .authorized, .limited:
-            let assets = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: nil)
-            assets.enumerateObjects { asset, _, _ in
-                if let uiImage = self.getUiImageFrom(asset: asset) {
-                    uiImages.append(uiImage)
-                }
-            }
+            return getPhotosFromAssets()
         default:
-            break
+            return []
+        }
+    }
+    
+    private func getPhotosFromAssets() -> [UIImage] {
+        var uiImages = [UIImage]()
+        
+        let assets = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: nil)
+        assets.enumerateObjects { asset, _, _ in
+            if let uiImage = self.getUiImageFrom(asset: asset) {
+                uiImages.append(uiImage)
+            }
         }
         
         return uiImages
